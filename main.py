@@ -8,7 +8,7 @@ META_VERIFY_TOKEN = os.getenv("META_VERIFY_TOKEN", "invalid_token")
 @app.get("/webhooks/", status_code=200)
 async def subscribe(
         hub_mode: str = Query(..., alias="hub.mode"),
-        hub_challenge: str = Query(..., alias="hub.challenge"),
+        hub_challenge: int = Query(..., alias="hub.challenge"),
         hub_verify_token: str = Query(..., alias="hub.verify_token")
 ):
     if hub_mode == "subscribe" and hub_verify_token == META_VERIFY_TOKEN:
