@@ -1,5 +1,7 @@
 from fastapi import FastAPI, Query, Response, HTTPException
 import os
+import parser
+import odoo_api
 
 app = FastAPI()
 META_VERIFY_TOKEN = os.getenv("META_VERIFY_TOKEN", "invalid_token")
@@ -20,5 +22,6 @@ async def subscribe(
 
 @app.post("/webhooks/", status_code=200)
 async def create_lead(body: dict):
-    print(f"Received Meta Lead body")
-    print(body)
+    parsed_body = await parser.parse_leadgen(body)
+    lead_id = await odoo_api.create_lead(parsed_body)
+    return {"Created lead id": lead_id}
