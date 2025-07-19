@@ -36,14 +36,14 @@ async def parse_leadgen(webhook_body: dict) -> dict:
             name = field['name']
             value = field['values'][0]
 
-            if name == 'email':
+            if name == 'email' or 'correo' in name:
                 lead['email_from'] = value
-            elif name == 'phone':
+            elif name == 'phone' or 'celular' in name or 'fono' in name:
                 telefono = value.replace(' ', '').replace('-', '')
                 lead['phone'] = telefono if phone_pattern.match(telefono) else ''
-            elif name == 'first_name':
+            elif name == 'first_name' or 'nombre' in name:
                 lead['partner_nombres'] = value
-            elif name == 'last_name':
+            elif name == 'last_name' or 'apellido' in name:
                 lead['partner_apellido_paterno'] = value
             elif 'medio_de_contacto' in name:
                 medio_contacto_id = await odoo_api.search_read_underscored_lowered('crm.espol.medio.contacto', value)
