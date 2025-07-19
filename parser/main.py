@@ -29,6 +29,10 @@ async def parse_leadgen(webhook_body: dict) -> dict:
         campaign_id = await odoo_api.create_campaign_if_does_not_exist(campaign_name)
         lead['campaign_id'] = campaign_id
 
+        fuente_id = await odoo_api.search_read_underscored_lowered('crm.espol.fuente', 'meta')
+        if fuente_id != -1:
+            lead['fuente_id'] = fuente_id
+
         field_data = leadgen_body.get('field_data', [])
 
         while len(field_data) > 0:
@@ -40,7 +44,11 @@ async def parse_leadgen(webhook_body: dict) -> dict:
                 lead['email_from'] = value
             elif name == 'phone' or 'celular' in name or 'fono' in name:
                 telefono = value.replace(' ', '').replace('-', '')
-                lead['phone'] = telefono if phone_pattern.match(telefono) else ''
+                if phone_pattern.match(telefono):
+                    lead['phone'] = telefono
+                else: 
+                    lead['phone'] = ''
+                    lead['description'] += f"{name}: {value} \n "
             elif name == 'first_name' or 'nombre' in name:
                 lead['partner_nombres'] = value
             elif name == 'last_name' or 'apellido' in name:
