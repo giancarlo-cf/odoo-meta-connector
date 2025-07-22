@@ -26,6 +26,7 @@ async def create_lead(body: dict):
     lead_id = await odoo_api.create_lead(parsed_body)
     return {"Created lead id": lead_id}
 
+
 @app.get("/webhooks/cec/", status_code=200)
 async def subscribe(
         hub_mode: str = Query(..., alias="hub.mode"),
@@ -38,6 +39,9 @@ async def subscribe(
     else:
         raise HTTPException(status_code=403, detail="Verification failed")
 
+
 @app.post("/webhooks/cec/", status_code=200)
 async def create_lead(body: dict):
-    print(body)
+    parsed_body = await parser.parse_leadgen(body)
+    lead_id = await odoo_api.create_lead(parsed_body)
+    return {"Created lead id": lead_id}
