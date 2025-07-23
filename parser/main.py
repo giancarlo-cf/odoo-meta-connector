@@ -61,7 +61,7 @@ async def parse_leadgen(webhook_body: dict) -> dict:
 
             if name == 'email' or 'correo' in name:
                 lead['email_from'] = value
-            elif name == 'phone' or 'celular' in name or 'fono' in name:
+            elif 'phone' in name or 'celular' in name or 'fono' in name:
                 telefono = value.replace(' ', '').replace('-', '')
                 if phone_pattern.match(telefono):
                     lead['phone'] = telefono.replace('+', '')
