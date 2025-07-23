@@ -72,7 +72,7 @@ async def parse_leadgen(webhook_body: dict) -> dict:
                 lead['partner_nombres'] = value
             elif name == 'last_name' or 'apellido' in name:
                 lead['partner_apellido_paterno'] = value
-            elif 'medio_de_contacto' in name:
+            elif 'medio_de_contacto' in name or 'preferido' in name:
                 medio_contacto_id = await odoo_api.search_read_underscored_lowered('crm.espol.medio.contacto', value)
                 if medio_contacto_id != -1:
                     lead['medio_contacto_id'] = medio_contacto_id
