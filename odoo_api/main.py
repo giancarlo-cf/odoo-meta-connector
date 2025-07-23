@@ -28,12 +28,12 @@ async def call(*args):
 
 async def search_read_underscored_lowered(model: str, target_name: str):
     records = await call(model, 'search_read', [['id', '>', 0]], ['name'])
-    records = list(filter(lambda x: x['name'].replace(' ', '_').lower() == target_name, records))
-    if not records:
-        records = list(filter(lambda x: x['name'].lower() == target_name.lower(), records))
-        if not records:
+    filtered_records = list(filter(lambda x: x['name'].replace(' ', '_').lower() == target_name, records))
+    if not filtered_records:
+        filtered_records = list(filter(lambda x: x['name'].lower() == target_name.lower(), records))
+        if not filtered_records:
             return -1
-    return records[0]['id']
+    return filtered_records[0]['id']
 
 
 async def create_lead(body: dict):
