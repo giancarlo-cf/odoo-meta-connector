@@ -45,3 +45,10 @@ async def create_lead(body: dict):
     parsed_body = await parser.parse_leadgen(body)
     lead_id = await odoo_api.create_lead(parsed_body)
     return {"Created lead id": lead_id}
+
+@app.get("/health/")
+async def health_check():
+    """
+    Health check endpoint to verify the service is running.
+    """
+    return {"status": "ok", "message": "Service is running"}
