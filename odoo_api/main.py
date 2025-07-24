@@ -38,7 +38,10 @@ async def search_read_underscored_lowered(model: str, target_name: str):
 
 async def create_lead(body: dict):
     lead_id = await call('crm.lead', 'create', body)
-    await call('crm.lead', 'remote_assign_salesman_if_possible', {'lead_id': lead_id})
+    try:
+        await call('crm.lead', 'remote_assign_salesman_if_possible', {'lead_id': lead_id})
+    except Exception as e:
+        print(f"Error assigning salesman: {e}")
     return lead_id
 
 
