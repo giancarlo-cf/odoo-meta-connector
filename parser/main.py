@@ -72,6 +72,8 @@ async def parse_leadgen(webhook_body: dict) -> dict:
                 lead['partner_nombres'] = value
             elif name == 'last_name' or 'apellido' in name:
                 lead['partner_apellido_paterno'] = value
+            elif name == 'full_name' or 'nombre_completo' in name:
+                lead['partner_nombres'] = value
             elif 'medio_de_contacto' in name or 'preferido' in name:
                 medio_contacto_id = await odoo_api.search_read_underscored_lowered('crm.espol.medio.contacto', value)
                 if medio_contacto_id != -1:
@@ -109,13 +111,14 @@ async def parse_leadgen(webhook_body: dict) -> dict:
                     lead['postgrado_id'] = postgrado_id
                 else:
                     lead['description'] += f"{name}: {value} \n "
-            elif 'name' == 'curso' or 'curso' in name:
+            elif name == 'curso' or 'diplomado' in name or 'curso' in name:
                 tipo_programa_id = await odoo_api.search_read_underscored_lowered('crm.espol.tipo.programa',
                                                                                   'educacion_continua')
                 if tipo_programa_id != -1:
                     lead['tipo_programa_id'] = tipo_programa_id
 
-                curso_id = await odoo_api.search_read_underscored_lowered('crm.espol.programa.educacion.continua', value)
+                curso_id = await odoo_api.search_read_underscored_lowered('crm.espol.programa.educacion.continua',
+                                                                          value)
                 if curso_id != -1:
                     lead['curso_id'] = curso_id
                 else:
