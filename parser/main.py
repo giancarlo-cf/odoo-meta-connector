@@ -56,7 +56,7 @@ async def parse_leadgen(webhook_body: dict) -> dict:
 
         while len(field_data) > 0:
             field = field_data.pop(0)
-            name = field['name']
+            name = field['name'].lower()
             value = field['values'][0]
 
             if name == 'email' or 'correo' in name:
