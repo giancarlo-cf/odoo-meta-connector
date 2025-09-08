@@ -58,7 +58,7 @@ async def parse_leadgen(webhook_body: dict) -> dict:
 
         if adset_name and adset_name in adsets_map:
             postgrado_name = adsets_map[adset_name]
-            field_data.push({'name': 'postgrado', 'values': [postgrado_name]})
+            field_data.append({'name': 'postgrado', 'values': [postgrado_name]})
         elif adset_name:
             lead['description'] += f"adset_name: {adset_name} \n "
 
