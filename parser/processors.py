@@ -4,12 +4,12 @@ import odoo_api
 VALID_PHONE_PATTERN = re.compile(r'^\+?\d+$')
 
 
-def process_email(lead: dict, value: str) -> bool:
+async def process_email(lead: dict, value: str) -> bool:
     lead['email_from'] = value
     return True
 
 
-def process_phone(lead: dict, value: str) -> bool:
+async def process_phone(lead: dict, value: str) -> bool:
     telefono = value.replace(' ', '').replace('-', '')
     if VALID_PHONE_PATTERN.match(telefono):
         lead['phone'] = telefono.replace('+', '')
@@ -18,12 +18,12 @@ def process_phone(lead: dict, value: str) -> bool:
     return True
 
 
-def process_name(lead: dict, value: str) -> bool:
+async def process_name(lead: dict, value: str) -> bool:
     lead['partner_nombres'] = value
     return True
 
 
-def process_last_name(lead: dict, value: str) -> bool:
+async def process_last_name(lead: dict, value: str) -> bool:
     lead['partner_apellido_paterno'] = value
     return True
 
@@ -68,7 +68,7 @@ async def process_period(lead: dict, value: str) -> bool:
     return found
 
 
-def process_event(lead: dict, value: str) -> bool:
+async def process_event(lead: dict, value: str) -> bool:
     lead['evento'] = value
     return True
 
@@ -112,7 +112,7 @@ async def process_city(lead: dict, value: str) -> bool:
     return found
 
 
-def process_salesman(lead: dict, value: str) -> bool:
+async def process_salesman(lead: dict, value: str) -> bool:
     lead['user_id'] = False
     return True
 

@@ -46,6 +46,7 @@ async def create_lead(body: dict):
     lead_id = await odoo_api.create_lead(parsed_body)
     return {"Created lead id": lead_id}
 
+
 @app.get("/health/")
 async def health_check():
     """
