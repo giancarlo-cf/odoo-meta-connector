@@ -1,9 +1,10 @@
 import httpx
 import os
-import re
 
 import odoo_api
 from httpx import Response
+
+from parser.processors import FIELD_PROCESSORS
 
 META_API_URL = os.getenv("META_API_URL", "")
 META_ACCESS_TOKENS = os.getenv("META_PAGE_ACCESS_TOKENS", "invalid_page_id:invalid_token")
@@ -17,8 +18,6 @@ adsets_map = {}
 for mapping_pair in META_ADSETS_MAPPING.split(','):
     adset_name, postgrado_name = mapping_pair.strip().split(':')
     adsets_map[adset_name] = postgrado_name
-
-phone_pattern = re.compile(r'^\+?\d+$')
 
 
 async def parse_leadgen(webhook_body: dict) -> dict:
@@ -72,79 +71,13 @@ async def parse_leadgen(webhook_body: dict) -> dict:
             name = field['name'].lower()
             value = field['values'][0]
 
-            if name == 'email' or 'correo' in name:
-                lead['email_from'] = value
-            elif 'phone' in name or 'celular' in name or 'fono' in name:
-                telefono = value.replace(' ', '').replace('-', '')
-                if phone_pattern.match(telefono):
-                    lead['phone'] = telefono.replace('+', '')
-                else:
-                    lead['phone'] = ''
-                    lead['description'] += f"{name}: {value} \n "
-            elif name == 'first_name' or 'nombre' in name:
-                lead['partner_nombres'] = value
-            elif name == 'last_name' or 'apellido' in name:
-                lead['partner_apellido_paterno'] = value
-            elif name == 'full_name' or 'nombre_completo' in name:
-                lead['partner_nombres'] = value
-            elif 'medio_de_contacto' in name or 'preferido' in name:
-                medio_contacto_id = await odoo_api.search_read_underscored_lowered('crm.espol.medio.contacto', value)
-                if medio_contacto_id != -1:
-                    lead['medio_contacto_id'] = medio_contacto_id
-                else:
-                    lead['description'] += f"{name}: {value} \n "
-            elif name == 'fuente':
-                fuente_id = await odoo_api.search_read_underscored_lowered('crm.espol.fuente', value)
-                if fuente_id != -1:
-                    lead['fuente_id'] = fuente_id
-                else:
-                    lead['description'] += f"{name}: {value} \n "
-            elif name == 'canal_contacto':
-                canal_contacto_id = await odoo_api.search_read_underscored_lowered('crm.espol.canal.contacto', value)
-                if canal_contacto_id != -1:
-                    lead['canal_contacto_id'] = canal_contacto_id
-                else:
-                    lead['description'] += f"{name}: {value} \n "
-            elif name == 'periodo':
-                periodo_id = await odoo_api.search_read_underscored_lowered('crm.espol.periodo', value)
-                if periodo_id != -1:
-                    lead['periodo_id'] = periodo_id
-                else:
-                    lead['description'] += f"{name}: {value} \n "
-            elif name == 'evento':
-                lead['evento'] = value
-            elif 'maestr' in name or 'grado' in name:
-                tipo_programa_id = await odoo_api.search_read_underscored_lowered('crm.espol.tipo.programa',
-                                                                                  'postgrado')
-                if tipo_programa_id != -1:
-                    lead['tipo_programa_id'] = tipo_programa_id
+            matched_processor = False
 
-                postgrado_id = await odoo_api.search_read_underscored_lowered('crm.espol.programa.postgrado', value)
-                if postgrado_id != -1:
-                    lead['postgrado_id'] = postgrado_id
-                else:
-                    lead['description'] += f"{name}: {value} \n "
-            elif name == 'curso' or 'diplomado' in name or 'curso' in name:
-                tipo_programa_id = await odoo_api.search_read_underscored_lowered('crm.espol.tipo.programa',
-                                                                                  'educacion_continua')
-                if tipo_programa_id != -1:
-                    lead['tipo_programa_id'] = tipo_programa_id
-
-                curso_id = await odoo_api.search_read_underscored_lowered('crm.espol.programa.educacion.continua',
-                                                                          value)
-                if curso_id != -1:
-                    lead['curso_id'] = curso_id
-                else:
-                    lead['description'] += f"{name}: {value} \n "
-            elif name == 'city' or 'ciudad' in name:
-                ciudad_id = await odoo_api.search_read_underscored_lowered('predefined.city', value)
-                if ciudad_id != -1:
-                    lead['partner_predefined_city_id'] = ciudad_id
-                else:
-                    lead['description'] += f"{name}: {value} \n "
-            elif name == 'vendedor':
-                lead['user_id'] = False
-            else:
+            for key, processor in FIELD_PROCESSORS.items():
+                if key in name:
+                    matched_processor = await processor(lead, value)
+                    break
+            if not matched_processor:
                 lead['description'] += f"{name}: {value} \n "
 
         return lead
