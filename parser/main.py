@@ -27,7 +27,7 @@ async def parse_leadgen(webhook_body: dict) -> dict:
     leadgen_id: int = webhook_body['entry'][0]['changes'][0]['value']['leadgen_id']
     page_id: int = webhook_body['entry'][0]['changes'][0]['value']['page_id']
 
-    async with httpx.AsyncClient() as client:
+    async with (httpx.AsyncClient() as client):
         leadgen_response: Response = await client.get(
             f'{META_API_URL}/{leadgen_id}?access_token={tokens_map[page_id]}&fields=campaign_name,field_data,form_id,adset_name')
         if leadgen_response.status_code != 200:
@@ -38,8 +38,6 @@ async def parse_leadgen(webhook_body: dict) -> dict:
         campaign_name = leadgen_body.get('campaign_name', '')
         form_id = leadgen_body.get('form_id', '')
         adset_name = leadgen_body.get('adset_name', '')
-
-        field_data = leadgen_body.get('field_data', [])
 
         if campaign_name:
             campaign_id = await odoo_api.create_campaign_if_does_not_exist(campaign_name)
@@ -56,15 +54,11 @@ async def parse_leadgen(webhook_body: dict) -> dict:
                 campaign_id = await odoo_api.create_campaign_if_does_not_exist(form_name)
                 lead['campaign_id'] = campaign_id
 
-        if adset_name and adset_name in adsets_map:
-            postgrado_name = adsets_map[adset_name]
-            field_data.append({'name': 'postgrado', 'values': [postgrado_name]})
-        elif adset_name:
-            lead['description'] += f"adset_name: {adset_name} \n "
-
         fuente_id = await odoo_api.search_read_underscored_lowered('crm.espol.fuente', 'meta')
         if fuente_id != -1:
             lead['fuente_id'] = fuente_id
+
+        field_data = leadgen_body.get('field_data', [])
 
         while len(field_data) > 0:
             field = field_data.pop(0)
@@ -79,5 +73,13 @@ async def parse_leadgen(webhook_body: dict) -> dict:
                     break
             if not matched_processor:
                 lead['description'] += f"{name}: {value} \n "
+
+        if adset_name:
+            lead['description'] += f"adset_name: {adset_name} \n "
+            if 'postgrado_id' not in lead:
+                for adset_key, postgrado_name in adsets_map.items():
+                    if adset_key in adset_name:
+                        await FIELD_PROCESSORS['grado'](lead, postgrado_name)
+                        break
 
         return lead
