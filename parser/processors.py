@@ -123,6 +123,7 @@ FIELD_PROCESSORS = {
     'phone': process_phone,
     'telefono': process_phone,
     'celular': process_phone,
+    'número_de_teléfono': process_phone,
     'full_name': process_name,
     'nombre_completo': process_name,
     'first_name': process_name,
